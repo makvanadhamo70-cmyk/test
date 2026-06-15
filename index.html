@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Battle Arena | Invite & Auto Earn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Rajdhani:wght@500;700&display=swap');
+        body {
+            background: linear-gradient(rgba(7,8,14,0.85), rgba(7,8,14,0.95)), url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200') center/cover fixed;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 15px;
+        }
+        .glass-container {
+            background: rgba(14,17,29,0.85); backdrop-filter: blur(12px);
+            border-radius: 32px; width: 100%; max-width: 420px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            animation: fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+        .header-banner { 
+            padding: 30px 20px 20px; 
+            text-align: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        /* ----- BIG LOGO WITH ENHANCED ANIMATION ----- */
+        .animated-logo { 
+            width: 140px;  /* bada size */
+            margin: 0 auto 15px auto; 
+            display: block;
+            filter: drop-shadow(0 0 8px #ff007f); 
+            animation: logoGlow 1.5s ease-in-out infinite alternate;
+            transition: transform 0.2s;
+        }
+        @keyframes logoGlow {
+            0% {
+                filter: drop-shadow(0 0 5px #ff007f) brightness(0.95);
+                transform: scale(0.98);
+            }
+            100% {
+                filter: drop-shadow(0 0 25px #00f0ff) brightness(1.15);
+                transform: scale(1.05);
+            }
+        }
+        /* hover par aur enlarge */
+        .animated-logo:hover {
+            animation-play-state: paused;
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 30px #ff00aa);
+        }
+        .welcome-text { 
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            font-family: 'Orbitron', sans-serif; 
+            background: linear-gradient(135deg,#fff,#e0e7ff); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            color: transparent; 
+            text-shadow: 0 0 8px rgba(0,240,255,0.4);
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+        .form-content { padding: 20px 24px 30px; }
+        .input-group { position: relative; margin-bottom: 18px; }
+        .form-input { width: 100%; background: #141929; border-radius: 14px; padding: 14px 20px 14px 48px; border: 1px solid rgba(255,255,255,0.08); color: white; font-size: 15px; transition: all 0.2s; }
+        .form-input:focus { border-color: #00f0ff; box-shadow: 0 0 12px rgba(0,240,255,0.2); outline: none; }
+        .prefix-code { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #00f0ff; font-weight: bold; }
+        .toggle-password { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #8b9bb4; }
+        .tab-btn { font-weight: 700; cursor: pointer; color: #8b9bb4; font-family: 'Orbitron', sans-serif; padding-bottom: 5px; transition: 0.2s; }
+        .active-tab { color: #ff007f; border-bottom: 3px solid #ff007f; text-shadow: 0 0 5px rgba(255,0,127,0.5); }
+        .action-btn { width: 100%; font-weight: 900; padding: 15px; border-radius: 40px; text-transform: uppercase; font-family: 'Orbitron', sans-serif; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-register { background: linear-gradient(90deg, #ff007f, #ff45a2); color: white; box-shadow: 0 4px 15px rgba(255,0,127,0.3); }
+        .btn-login { background: linear-gradient(90deg, #00b4db, #00f0ff); color: #07080e; }
+        .action-btn:active { transform: scale(0.97); }
+        .invite-msg { font-size: 0.75rem; margin-top: -10px; margin-bottom: 12px; padding-left: 10px; font-weight: 600; }
+        .valid-msg { color: #00ffaa; animation: glow 1s ease; }
+        .invalid-msg { color: #ff5e5e; }
+        @keyframes glow { 0% { opacity: 0; transform: translateX(-5px); } 100% { opacity: 1; transform: translateX(0); } }
+        .otp-display { font-family: monospace; font-size: 12px; color: #00ff66; margin-top: 8px; text-align: center; display: none; letter-spacing: 1px; }
+        .icon-inside { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #8b9bb4; font-size: 1rem; }
+        /* mobile ke liye thoda adjust */
+        @media (max-width: 480px) {
+            .animated-logo { width: 110px; }
+            .welcome-text { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="glass-container">
+    <div class="header-banner">
+        <!-- Logo - ab bada aur center me, full animation ke saath -->
+        <img src="logo.png" class="animated-logo" alt="Battle Arena Logo" onerror="this.src='https://placehold.co/140x140/111424/ff007f?text=BA'">
+        <p class="welcome-text">⚡ BATTLE ARENA ⚡</p>
+    </div>
+    <div class="form-content">
+        <div class="flex justify-around mb-6">
+            <span id="signup-tab" class="tab-btn active-tab" onclick="switchTab('signup')">🔰 SIGN UP</span>
+            <span id="signin-tab" class="tab-btn" onclick="switchTab('signin')">🚀 SIGN IN</span>
+        </div>
+        <!-- SIGNUP FORM -->
+        <form id="signup-form" onsubmit="handleAuth(event, 'signup')">
+            <div class="input-group"><span class="prefix-code">+91</span><input type="number" id="phone" placeholder="Phone Number" class="form-input" style="padding-left: 55px;" required></div>
+            <div class="input-group"><i class="fas fa-user-ninja icon-inside"></i><input type="text" id="nickname" placeholder="Gamer Nickname (Min 5)" class="form-input" style="padding-left: 48px;" required></div>
+            <div class="input-group"><i class="fas fa-lock icon-inside"></i><input type="password" id="pass" placeholder="Password (Min 6)" class="form-input" style="padding-left:48px; padding-right:48px;" required><i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('pass', this)"></i></div>
+            <div class="input-group"><i class="fas fa-trophy icon-inside"></i><input type="text" id="invite" placeholder="Invitation Code (Optional)" class="form-input" style="padding-left:48px;"></div>
+            <div id="inviteMessage" class="invite-msg"></div>
+            <div class="input-group"><i class="fas fa-shield-halved icon-inside"></i><input type="text" id="otp-input" placeholder="Verification Code" class="form-input" style="padding-left:48px;" required><span class="absolute right-6 top-1/2 -translate-y-1/2 text-cyan-400 font-bold cursor-pointer text-sm" onclick="sendOTP()">SEND</span></div>
+            <div id="otpMonitorLog" class="otp-display"></div>
+            <button type="submit" class="action-btn btn-register mt-2"><i class="fas fa-user-plus mr-2"></i>Create Account</button>
+        </form>
+        <!-- SIGNIN FORM -->
+        <form id="signin-form" class="hidden" onsubmit="handleAuth(event, 'signin')">
+            <div class="input-group"><span class="prefix-code">+91</span><input type="number" id="login-phone" placeholder="Phone Number" class="form-input" style="padding-left:55px;" required></div>
+            <div class="input-group"><i class="fas fa-lock icon-inside"></i><input type="password" id="login-pass" placeholder="Password" class="form-input" style="padding-left:48px; padding-right:48px;" required><i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility('login-pass', this)"></i></div>
+            <p class="text-right text-red-400 text-xs font-bold mb-4 cursor-pointer hover:underline" onclick="window.location.href='https://t.me/Dbt1Support'">Forgot Password?</p>
+            <button type="submit" class="action-btn btn-login"><i class="fas fa-sign-in-alt mr-2"></i>Access Arena</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, update, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZrqHRFCh8udgS7__Aun7G5iQyi_iaMfk",
+        authDomain: "battle-arena-main.firebaseapp.com",
+        databaseURL: "https://battle-arena-main-default-rtdb.firebaseio.com",
+        projectId: "battle-arena-main",
+        storageBucket: "battle-arena-main.firebasestorage.app",
+        messagingSenderId: "1066813367576",
+        appId: "1:1066813367576:web:79b0f5c6470fa46f51ea6d"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let generatedOTP = null;
+    let currentInviteValid = false;
+    let inviteReferrerPhone = null;
+    let inviteReferrerName = "";
+
+    function playSound() { new Audio("https://assets.mixkit.co/active_storage/sfx/1657/1657-84.wav").play().catch(e=>{}); }
+    window.showMsg = (icon, title) => { playSound(); Swal.fire({ icon, title, confirmButtonColor:'#ff007f', background:'#0e111d', color:'#fff', timer:2000 }); };
+    window.togglePasswordVisibility = (id, icon) => { let inp=document.getElementById(id); if(inp.type==='password'){ inp.type='text'; icon.classList.replace('fa-eye','fa-eye-slash'); } else { inp.type='password'; icon.classList.replace('fa-eye-slash','fa-eye'); } };
+    window.switchTab = (tab) => { document.getElementById('signup-form').classList.toggle('hidden', tab!=='signup'); document.getElementById('signin-form').classList.toggle('hidden', tab!=='signin'); document.getElementById('signup-tab').classList.toggle('active-tab', tab==='signup'); document.getElementById('signin-tab').classList.toggle('active-tab', tab==='signin'); };
+    window.sendOTP = function() { let phone = document.getElementById('phone').value; if(phone.length<10) return showMsg('error','Enter 10-digit number'); generatedOTP = Math.floor(1000+Math.random()*9000).toString(); showMsg('success','Verification code generated'); document.getElementById('otpMonitorLog').innerHTML = `🔐 VERIFY: ${generatedOTP}`; document.getElementById('otpMonitorLog').style.display = "block"; };
+
+    // IMPROVED INVITE VALIDATION
+    async function validateInviteCode(code) {
+        if(!code.trim()) { 
+            inviteMsgDiv.innerHTML=""; currentInviteValid=false; inviteReferrerPhone=null; inviteReferrerName=""; 
+            return; 
+        }
+        const upperCode = code.trim().toUpperCase();
+        let snap = await get(child(ref(db), `referralCodes/${upperCode}`));
+        let referrerData = null;
+        if(snap.exists()) {
+            referrerData = snap.val();
+        } else {
+            const usersSnap = await get(child(ref(db), `users`));
+            if(usersSnap.exists()) {
+                const users = usersSnap.val();
+                for(let phone in users) {
+                    if(users[phone].promoCode === upperCode) {
+                        referrerData = { phone: phone, nickname: users[phone].nickname };
+                        break;
+                    }
+                }
+            }
+        }
+        if(referrerData) {
+            inviteReferrerPhone = referrerData.phone;
+            inviteReferrerName = referrerData.nickname || "a warrior";
+            inviteMsgDiv.innerHTML = `<span class="valid-msg"><i class="fas fa-user-check"></i> ✅ You are inviting from ${inviteReferrerName}</span>`;
+            currentInviteValid = true;
+        } else {
+            inviteMsgDiv.innerHTML = `<span class="invalid-msg"><i class="fas fa-times-circle"></i> ❌ Invalid invitation code</span>`;
+            currentInviteValid = false; inviteReferrerPhone=null; inviteReferrerName="";
+        }
+    }
+    const inviteInput = document.getElementById('invite');
+    const inviteMsgDiv = document.getElementById('inviteMessage');
+    inviteInput.addEventListener('input', (e) => validateInviteCode(e.target.value));
+
+    async function isPhoneRegistered(phone) { const snap = await get(child(ref(db), `users/${phone}`)); return snap.exists(); }
+
+    async function autoRewardReferrer(referrerPhone, newUserName) {
+        const referrerRef = ref(db, `users/${referrerPhone}`);
+        const snap = await get(referrerRef);
+        if(snap.exists()) {
+            const referrer = snap.val();
+            const newBalance = (referrer.balance || 0) + 10;
+            const newCount = (referrer.referralCount || 0) + 1;
+            await update(referrerRef, { balance: newBalance, referralCount: newCount });
+            console.log(`Auto rewarded ${referrerPhone} with 10 coins. New balance: ${newBalance}`);
+        } else {
+            console.error("Referrer not found:", referrerPhone);
+        }
+    }
+
+    window.handleAuth = async (event, type) => {
+        event.preventDefault();
+        if(type === 'signup') {
+            const phone = document.getElementById('phone').value.trim();
+            const nick = document.getElementById('nickname').value.trim();
+            const pswd = document.getElementById('pass').value;
+            const otp = document.getElementById('otp-input').value.trim();
+            const inviteCode = document.getElementById('invite').value.trim().toUpperCase();
+            if(!phone||!nick||!pswd) return showMsg('warning','All fields required');
+            if(nick.length<5) return showMsg('warning','Nickname ≥5 letters');
+            if(pswd.length<6) return showMsg('warning','Password ≥6 chars');
+            if(!generatedOTP) return showMsg('warning','Click SEND first');
+            if(otp !== generatedOTP) return showMsg('error','Wrong OTP');
+            const exists = await isPhoneRegistered(phone);
+            if(exists) return showMsg('error','Phone already registered! Login instead.');
+            if(inviteCode !== "" && !currentInviteValid) return showMsg('error','Invalid invitation code');
+            
+            const newPromoCode = Math.random().toString(36).substring(2,10).toUpperCase();
+            const userObj = {
+                phone, nickname: nick, password: pswd, balance: 0,
+                promoCode: newPromoCode, referralCount: 0,
+                createdAt: new Date().toISOString()
+            };
+            if(inviteCode && currentInviteValid) {
+                userObj.referredBy = inviteCode;
+                await autoRewardReferrer(inviteReferrerPhone, nick);
+            }
+            await set(ref(db, `users/${phone}`), userObj);
+            await set(ref(db, `referralCodes/${newPromoCode}`), { phone, nickname: nick });
+            localStorage.setItem('isLoggedIn','true');
+            localStorage.setItem('userPhone', phone);
+            localStorage.setItem('userName', nick);
+            localStorage.setItem('userPromoCode', newPromoCode);
+            playSound();
+            Swal.fire({
+                title: `WELCOME ${nick.toUpperCase()}!`,
+                html: `<div style="border:1px solid #00f0ff; border-radius:20px; padding:16px;"><span style="color:#00f0ff">Your Promo Code:</span><br><span style="font-size:32px; font-weight:900;">${newPromoCode}</span><br><small>Share to earn coins!</small></div>`,
+                icon:'success', background:'#0e111d', confirmButtonColor:'#00f0ff'
+            }).then(()=>{ window.location.href = "dashboard.html"; });
+        } else {
+            const phone = document.getElementById('login-phone').value.trim();
+            const pwd = document.getElementById('login-pass').value;
+            if(!phone||!pwd) return showMsg('warning','Enter phone & password');
+            const snap = await get(child(ref(db), `users/${phone}`));
+            if(snap.exists() && snap.val().password === pwd) {
+                const user = snap.val();
+                localStorage.setItem('isLoggedIn','true');
+                localStorage.setItem('userPhone', phone);
+                localStorage.setItem('userName', user.nickname);
+                localStorage.setItem('userPromoCode', user.promoCode);
+                playSound();
+                Swal.fire({ title:`WELCOME BACK, ${user.nickname}!`, text:'Redirecting...', icon:'success', timer:1500, showConfirmButton:false }).then(()=>{ window.location.href = "dashboard.html"; });
+            } else { showMsg('error','Invalid credentials'); }
+        }
+    };
+</script>
+</body>
+</html>
