@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FCM Token Test</title>
+</head>
+<body>
+    <h1>FCM Token Test</h1>
+    <button id="allowBtn">Allow Notifications & Save Token</button>
+    <pre id="log"></pre>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZrqHRFCh8udgS7__Aun7G5iQyi_iaMfk",
+            authDomain: "battle-arena-main.firebaseapp.com",
+            databaseURL: "https://battle-arena-main-default-rtdb.firebaseio.com",
+            projectId: "battle-arena-main",
+            storageBucket: "battle-arena-main.firebasestorage.app",
+            messagingSenderId: "1066813367576",
+            appId: "1:1066813367576:web:79b0f5c6470fa46f51ea6d"
+        };
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        const db = getDatabase(app);
+        const VAPID = "BOShVTfDyLJLHBrqZ0A69G1JHhkTaRLv5UEqfm3tLM4DJ33UQky1_8hgjxwsziLZKAvyNoUexLRPigni-p20yjc";
+
+        const logDiv = document.getElementById('log');
+
+        document.getElementById('allowBtn').onclick = async () => {
+            logDiv.innerText = "Requesting permission...\n";
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    logDiv.innerText += "❌ Permission denied.";
+                    return;
+                }
+                logDiv.innerText += "✅ Permission granted.\nGetting token...\n";
+                const token = await getToken(messaging, { vapidKey: VAPID });
+                logDiv.innerText += `✅ Token: ${token}\n`;
+                // Save token to a test node (also to users node if you have a phone number)
+                await set(ref(db, 'testTokens/latest'), token);
+                logDiv.innerText += "✅ Token saved to Firebase under 'testTokens/latest'.\n";
+                // Optional: also save to a dummy user node
+                await set(ref(db, 'users/dummy/fcmToken'), token);
+                logDiv.innerText += "✅ Also saved to 'users/dummy/fcmToken'.\n";
+            } catch (err) {
+                logDiv.innerText += `❌ Error: ${err.message}\n`;
+                console.error(err);
+            }
+        };
+    </script>
+</body>
+</html>
